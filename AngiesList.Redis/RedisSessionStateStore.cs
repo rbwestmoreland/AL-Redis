@@ -291,7 +291,7 @@ namespace AngiesList.Redis
 			var getLock = redis.Hashes.Get(0, lockHashKey, id);
 			var lockIdAsBytes = (byte[])lockId;
 			LockData lockData;
-			if (getLock.Result != null && LockData.TryParse(getLock.Result, out lockData) && lockData.LockId == lockIdAsBytes) {
+			if (getLock.Result != null && LockData.TryParse(getLock.Result, out lockData) && Enumerable.SequenceEqual(lockData.LockId, lockIdAsBytes)) {
 				redis.Keys.Remove(0, GetKeyForSessionId(id));
 				redis.Hashes.Remove(0, lockHashKey, id);
 			}
