@@ -212,7 +212,13 @@ namespace AngiesList.Redis
 		{
 			get {
 				AddKeysToBase();
-				return base.Keys;
+				var copiedCollection = new NameValueCollection();
+				foreach (var key in BaseGetAllKeys())
+				{
+					copiedCollection.Add(key, null);
+				}
+
+				return copiedCollection.Keys;
 			}
 		}
 
