@@ -304,7 +304,13 @@ namespace AngiesList.Redis
 
 		public override void ResetItemTimeout(HttpContext context, string id)
 		{
-			//TODO
+			var redis = GetRedisConnection();
+			var getTimeoutMinutes = redis.Hashes.Get(0, GetKeyForSessionId(id), "timeoutMinutes");
+
+			if (getTimeoutMinutes != null) {
+				var timeoutMinutes = BitConverter.ToInt32(getTimeoutMinutes, 0);
+				redis.Keys.Expire(0, GetKeyForSessionId(id), timeoutMinutes * 60);
+			}
 		}
 
 		public override void InitializeRequest(HttpContext context)
