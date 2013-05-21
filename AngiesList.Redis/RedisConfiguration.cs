@@ -45,7 +45,7 @@ namespace AngiesList.Redis
         /// <param name="path">The path to the config file. Defaults to KeyValueStore.config</param>
         /// <param name="watchFile">If the config file should be watched and automatically reloaded.</param>
         /// <returns></returns>
-        public static RedisConfiguration ReadConfigFile(string path = CONFIG_FILE, bool watchFile = true)
+        public static RedisConfiguration ReadConfigFile(string path = CONFIG_FILE)
         {
             
             string fullPath;
@@ -76,9 +76,6 @@ namespace AngiesList.Redis
                 }
             }
 
-
-            SetUpFileWatcher(fullPath, config);
-
             return config;
         }
 
@@ -88,25 +85,6 @@ namespace AngiesList.Redis
             xmlDoc.Load(path);
             return xmlDoc;
         }
-
-        #region File Watcher logic
-
-        private static void SetUpFileWatcher(string fullPath, RedisConfiguration config)
-        {
-            string dir = Path.GetDirectoryName(fullPath),
-                   file = Path.GetFileName(fullPath);
-            var watcher = new FileSystemWatcher(dir, file);
-            watcher.EnableRaisingEvents = true;
-            watcher.Changed += new FileSystemEventHandler((obj, args) =>
-            {
-                //TODO: this could be better, as 
-                var newConfig = ReadConfigFile(fullPath, watchFile: false);
-                config.Host = newConfig.Host;
-                config.Port = newConfig.Port;
-            });
-        }
-
-        #endregion File Watcher logic
 
         #endregion
 
