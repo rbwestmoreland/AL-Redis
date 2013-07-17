@@ -196,7 +196,7 @@ namespace AngiesList.Redis
 
 		public void Remove(string name)
 		{
-			redis.Hashes.Remove(0, GetKeyForSession(), name);
+            redis.Hashes.Remove(0, GetKeyForSession(), VALUE_PREFIX + name);
 			BaseRemove(name);
 		}
 
