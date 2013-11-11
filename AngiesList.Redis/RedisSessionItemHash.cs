@@ -191,13 +191,17 @@ namespace AngiesList.Redis
 		public void Clear()
 		{
 			redis.Keys.Remove(0, GetKeyForSession());
+            rawItems.Clear();
+            namesAdded.Clear();
+            persistentValues.Clear();
 			BaseClear();
 		}
 
 		public void Remove(string name)
 		{
-			redis.Hashes.Remove(0, GetKeyForSession(), name);
-			BaseRemove(name);
+            redis.Hashes.Remove(0, GetKeyForSession(), VALUE_PREFIX + name);
+            rawItems.Remove(VALUE_PREFIX + name);
+            BaseRemove(name);
 		}
 
 		public override int Count
