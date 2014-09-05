@@ -22,7 +22,7 @@ namespace AngiesList.Redis
             : base(config.Name)
         {
             redisConfig = config;
-            cacheItemSerializer = new ClrBinarySerializer();
+            cacheItemSerializer = new CompressedValueSerializer(new ClrBinarySerializer());
         }
 
         private object _getConnectionLock = new object();

@@ -68,6 +68,8 @@
   <ItemGroup>
     <Compile Include="BooksleeveExtensions.cs" />
     <Compile Include="Bucket.cs" />
+    <Compile Include="CompressedValueSerializer.cs" />
+    <Compile Include="Gzip.cs" />
     <Compile Include="RedisConfiguration.cs" />
     <Compile Include="RedisSessionItemHash.cs" />
     <Compile Include="RedisSessionStateConfiguration.cs" />

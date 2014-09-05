@@ -18,7 +18,7 @@ namespace AngiesList.Redis
 		private string sessionId;
 		private int timeoutMinutes;
 
-		private IValueSerializer serializer = new ClrBinarySerializer();
+		private IValueSerializer serializer = new CompressedValueSerializer(new ClrBinarySerializer());
 
 		private IDictionary<string, object> persistentValues = new Dictionary<string, object>();
 		private object deserializeLock = new object();

@@ -67,15 +67,7 @@ namespace AngiesList.Redis
 			var getLock = redis.Hashes.Get(0, lockHashKey, id);
 			var lockIdAsBytes = (byte[])lockId;
 			var ms = new MemoryStream();
-			var writer = new BinaryWriter(ms);
-
-			if (item.Items as SessionStateItemCollection != null) {
-				((SessionStateItemCollection)item.Items).Serialize(writer);
-			}
-
-			writer.Close();
-
-			byte[] sessionData = ms.ToArray();
+			var sessionData = Serialize(item.Items);
 			var sessionItemHash = new Dictionary<string, byte[]>();
 			sessionItemHash.Add("initialize", new byte[] { 0 });
 			sessionItemHash.Add("data", sessionData);
@@ -113,11 +105,7 @@ namespace AngiesList.Redis
 				var sessionItems = new SessionStateItemCollection();
 				var sessionDataHash = getSessionData.Result;
 				if (sessionDataHash.Count == 3) {
-					var ms = new MemoryStream(sessionDataHash["data"]);
-					if (ms.Length > 0) {
-						var reader = new BinaryReader(ms);
-						sessionItems = SessionStateItemCollection.Deserialize(reader);
-					}
+					sessionItems = Deserialize(sessionDataHash["data"]);
 
 					var timeoutMinutes = BitConverter.ToInt32(sessionDataHash["timeoutMinutes"], 0);
 					redis.Keys.Expire(0, GetKeyForSessionId(id), timeoutMinutes * 60);
@@ -165,11 +153,7 @@ namespace AngiesList.Redis
 							actions = sessionDataHash["initialize"][0] == 1 ?
 									  SessionStateActions.InitializeItem : SessionStateActions.None;
 
-							var ms = new MemoryStream(sessionDataHash["data"]);
-							if (ms.Length > 0) {
-								var reader = new BinaryReader(ms);
-								sessionItems = SessionStateItemCollection.Deserialize(reader);
-							}
+							sessionItems = Deserialize(sessionDataHash["data"]);
 
 							var timeoutMinutes = BitConverter.ToInt32(sessionDataHash["timeoutMinutes"], 0);
 							redis.Keys.Expire(0, GetKeyForSessionId(id), timeoutMinutes * 60);
@@ -253,11 +237,7 @@ namespace AngiesList.Redis
 		public override void CreateUninitializedItem(HttpContext context, string id, int timeout)
 		{
 			var redis = GetRedisConnection();
-			var ms = new MemoryStream();
-			var writer = new BinaryWriter(ms);
-			(new SessionStateItemCollection()).Serialize(writer);
-			writer.Close();
-			byte[] sessionData = ms.ToArray();
+			var sessionData = Serialize(new SessionStateItemCollection());
 			var newItemHash = new Dictionary<string, byte[]>();
 			newItemHash.Add("data", sessionData);
 			newItemHash.Add("initialize", new byte[] { 0 });
@@ -319,6 +299,47 @@ namespace AngiesList.Redis
 
 		public override void EndRequest(HttpContext context)
 		{
+		}
+
+		private static byte[] Serialize(ISessionStateItemCollection data)
+		{
+			byte[] bytes;
+
+			using (var stream = new MemoryStream())
+			using (var writer = new BinaryWriter(stream))
+			{
+				var collection = data as SessionStateItemCollection;
+
+				if (collection != null)
+					collection.Serialize(writer);
+
+				writer.Close();
+				bytes = stream.ToArray();
+			}
+
+			bytes = Gzip.Compress(bytes);
+
+			return bytes;
+		}
+
+		private static SessionStateItemCollection Deserialize(byte[] bytes)
+		{
+			var data = new SessionStateItemCollection();
+
+			bytes = Gzip.Decompress(bytes);
+
+			using (var stream = new MemoryStream(bytes))
+			{
+				if (stream.Length > 0)
+				{
+					using (var reader = new BinaryReader(stream))
+					{
+						data = SessionStateItemCollection.Deserialize(reader);
+					}
+				}
+			}
+
+			return data;
 		}
 	}
 }
