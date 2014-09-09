@@ -22,6 +22,7 @@ namespace AngiesList.Redis
         { 
             CookieMode = HttpCookieMode.UseCookies;
             SessionTimeout = 60;
+            CompressionEnabled = false;
         }
 
         private static RedisSessionStateConfiguration Instance;
@@ -38,6 +39,10 @@ namespace AngiesList.Redis
         /// </summary>
         public int SessionTimeout { get; set; }
 
+        /// <summary>
+        /// Compression Enabled. Defaults to false.
+        /// </summary>
+        public bool CompressionEnabled { get; set; }
         #endregion
 
 
@@ -94,9 +99,7 @@ namespace AngiesList.Redis
             }
 
             SessionTimeout = (int)config.Timeout.TotalMinutes;
-
-
-
+            CompressionEnabled = config.CompressionEnabled;
         }
     }
 }

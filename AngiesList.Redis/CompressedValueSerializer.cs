@@ -5,6 +5,7 @@ namespace AngiesList.Redis
 	public class CompressedValueSerializer : IValueSerializer
 	{
 		private readonly IValueSerializer _serializer;
+		private readonly RedisSessionStateConfiguration _redisConfig;
 
 		public CompressedValueSerializer(IValueSerializer serializer)
 		{
@@ -12,12 +13,13 @@ namespace AngiesList.Redis
 				throw new ArgumentNullException("serializer");
 
 			_serializer = serializer;
+			_redisConfig = RedisSessionStateConfiguration.GetConfiguration();
 		}
 
 		public byte[] Serialize(object value)
 		{
 			var bytes = _serializer.Serialize(value);
-			var compressedBytes = Gzip.Compress(bytes);
+			var compressedBytes = _redisConfig.CompressionEnabled ? Gzip.Compress(bytes) : bytes;
 
 			return compressedBytes;
 		}
@@ -27,7 +29,7 @@ namespace AngiesList.Redis
 			if (bytes == null)
 				return null;
 
-			var decompressedBytes = Gzip.Decompress(bytes);
+			var decompressedBytes = Gzip.IsCompressed(bytes) ? Gzip.Decompress(bytes) : bytes;
 			var value = _serializer.Deserialize(decompressedBytes);
 
 			return value;

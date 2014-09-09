@@ -301,7 +301,7 @@ namespace AngiesList.Redis
 		{
 		}
 
-		private static byte[] Serialize(ISessionStateItemCollection data)
+		private byte[] Serialize(ISessionStateItemCollection data)
 		{
 			byte[] bytes;
 
@@ -317,7 +317,7 @@ namespace AngiesList.Redis
 				bytes = stream.ToArray();
 			}
 
-			bytes = Gzip.Compress(bytes);
+			bytes = redisConfig.CompressionEnabled ? Gzip.Compress(bytes) : bytes;
 
 			return bytes;
 		}
@@ -326,7 +326,7 @@ namespace AngiesList.Redis
 		{
 			var data = new SessionStateItemCollection();
 
-			bytes = Gzip.Decompress(bytes);
+			bytes = Gzip.IsCompressed(bytes) ? Gzip.Decompress(bytes) : bytes;
 
 			using (var stream = new MemoryStream(bytes))
 			{

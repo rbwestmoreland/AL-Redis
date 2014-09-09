@@ -5,6 +5,11 @@ namespace AngiesList.Redis
 {
 	public static class Gzip
 	{
+		public static bool IsCompressed(byte[] bytes)
+		{
+			return bytes.Length >= 2 && bytes[0] == 31 && bytes[1] == 139;
+		}
+
 		public static byte[] Compress(byte[] bytes)
 		{
 			byte[] compressedBytes;
